@@ -16,8 +16,8 @@ COURSE_TIME_SLOTS = {
 
 # Lab time slot mapping with numeric column references
 LAB_TIME_SLOTS = {
-    "8:30-11:15": [ 1,2, 3, 4, 5, 6],
-    "11:25-2:10": [ 7, 8, 9 ,10,11],
+    "8:30-11:15": [1, 2, 3, 4, 5, 6],
+    "11:25-2:10": [7, 8, 9, 10, 11],
     "2:25-5:10": [12, 13, 14, 15, 16]   
 }
 
@@ -39,7 +39,7 @@ def download_sheet(url):
     """
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response.raise_for_status()
         return pd.read_excel(response.content)
     except Exception as e:
         st.error(f"Error downloading sheet: {e}")
@@ -54,22 +54,17 @@ def categorize_classroom_by_block(classroom_name):
     :param classroom_name: String name of the classroom
     :return: Block identifier (A, B, C, etc.) or "Other" or None to skip
     """
-    # Convert to string and clean
     classroom_str = str(classroom_name).strip()
     
-    # Ignore 'nan' values
     if classroom_str.lower() == 'nan' or not classroom_str:
-        return None  # Will be filtered out later
+        return None
     
-    # Special case for Rawal labs (they are in B block)
     if "rawal" in classroom_str.lower():
         return "B"
     
-    # Skip generic "Lab" entries that aren't associated with a specific block
     if classroom_str.lower() == "lab":
-        return None  # Skip these entries
+        return None
     
-    # Regular case: extract first letter if it's alphabetic
     if classroom_str and len(classroom_str) > 0 and classroom_str[0].isalpha():
         return classroom_str[0]
     
@@ -78,8 +73,7 @@ def categorize_classroom_by_block(classroom_name):
 def load_sheet(sheet_url):
     df = pd.read_excel(sheet_url, header=None)
     
-    # Check day in cell A1
-    day_cell = df.iloc[0, 0]  # A1 cell (row 0, column 0)
+    day_cell = df.iloc[0, 0]
     is_tuesday_or_thursday = "Tuesday" in str(day_cell) or "Thursday" in str(day_cell)
     
     timetable_start_index = None
@@ -91,20 +85,15 @@ def load_sheet(sheet_url):
     batch_rows = df.iloc[:4].values.tolist()
     
     if timetable_start_index is not None:
-        # Get regular class data
-        
         regular_data = df.iloc[timetable_start_index:timetable_start_index+43-5].reset_index(drop=True).values.tolist()
         
         if is_tuesday_or_thursday:
-            # Lab timings row and lab data for Tuesday and Thursday
             lab_timings_row = df.iloc[timetable_start_index+42-5].values.tolist()
             lab_data = df.iloc[timetable_start_index+42-5:].reset_index(drop=True).values.tolist()
         else:
-            # Lab timings row and lab data for other days
             lab_timings_row = df.iloc[timetable_start_index+43-5].values.tolist()
             lab_data = df.iloc[timetable_start_index+43-5:].reset_index(drop=True).values.tolist()
         
-        # Insert lab timings as the first row of lab_data
         lab_data.insert(0, lab_timings_row)
     else:
         regular_data = []
@@ -121,7 +110,6 @@ def extract_department_from_course(course_str):
     if not course_str or not isinstance(course_str, str):
         return ""
     
-    # Try to extract department code like CS, SE, DS, etc. from course code
     match = re.search(r"\(([A-Za-z]{2})-", course_str)
     if match:
         return match.group(1)
@@ -132,7 +120,6 @@ def extract_custom_time(course_str):
     if not course_str or not isinstance(course_str, str):
         return None
     
-    # Pattern to match time formats like "1:00-3:00" or "1:00 - 3:00"
     pattern = r"(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})"
     match = re.search(pattern, course_str)
     if match:
@@ -146,15 +133,13 @@ def extract_standard_time_slots(regular_data, lab_data=None):
     time_slots = []
     standard_time_pattern = r'^\d{2}:\d{2}-\d{2}:\d{2}$'
     
-    # Extract from regular data
     if regular_data and len(regular_data) > 0:
-        for time_slot in regular_data[0][1:]:  # Skip first column (room)
+        for time_slot in regular_data[0][1:]:
             if isinstance(time_slot, str) and re.match(standard_time_pattern, time_slot.strip()):
                 time_slots.append(time_slot.strip())
     
-    # Extract from lab data
     if lab_data and len(lab_data) > 0:
-        for time_slot in lab_data[0][1:]:  # Skip first column (room)
+        for time_slot in lab_data[0][1:]:
             if isinstance(time_slot, str) and re.match(standard_time_pattern, time_slot.strip()):
                 if time_slot.strip() not in time_slots:
                     time_slots.append(time_slot.strip())
@@ -172,28 +157,23 @@ def find_free_classes(df, time_slot_columns, search_type):
     """
     free_classes = []
     
-    # Set row range based on search type
     if search_type == 'course':
-        start_row, end_row = 1, 42  # Theory classes from rows 1-42
+        start_row, end_row = 1, 42
     elif search_type == 'lab':
-        start_row, end_row = 43, df.shape[0]  # Lab classes from row 43 onwards
+        start_row, end_row = 43, df.shape[0]
     else:
         st.error("Invalid search type")
         return []
     
-    # Check specified rows for courses or labs
     for row in range(start_row, end_row):
-        if row >= df.shape[0]:  # Safety check to avoid index errors
+        if row >= df.shape[0]:
             break
             
         row_data = df.iloc[row]
         
-        # Check if the classroom is empty for ALL specified time slot columns
         is_free = all(pd.isna(row_data[col]) for col in time_slot_columns)
         
-        # Additional check to ensure no data in the time slot columns
         if is_free:
-            # Get classroom from Column A
             classroom = row_data[0]
             
             free_classes.append({
@@ -208,31 +188,26 @@ def find_empty_rooms(selected_day, selected_time, DAY_MAPPING):
     sheet_url = DAY_MAPPING[selected_day]
     _, regular_data, lab_data = load_sheet(sheet_url)
     
-    # Get all rooms
     all_rooms = set()
     occupied_rooms = set()
     
-    # Process regular classes and labs
     data_sets = [
-        (regular_data, regular_data[0], 1, 42),  # Regular class data with its time row and row range
-        (lab_data, lab_data[0] if lab_data else [], 43, len(lab_data))  # Lab data with its time row and row range
+        (regular_data, regular_data[0], 1, 42),
+        (lab_data, lab_data[0] if lab_data else [], 43, len(lab_data))
     ]
     
     for data, time_row, start_row_idx, end_row_idx in data_sets:
-        # Find the column index for the selected time
         try:
             target_col_index = time_row.index(selected_time)
         except ValueError:
-            continue  # Skip if time not found
+            continue
         
-        # Use the specified row range
         for row_idx in range(start_row_idx, end_row_idx):
-            if row_idx >= len(data):  # Safety check
+            if row_idx >= len(data):
                 continue
                 
             row = data[row_idx]
             
-            # Ensure row has enough columns
             if len(row) <= target_col_index:
                 continue
             
@@ -240,12 +215,10 @@ def find_empty_rooms(selected_day, selected_time, DAY_MAPPING):
             if room and room != "nan":
                 all_rooms.add(room)
                 
-                # Check if room is occupied
                 cell_content = str(row[target_col_index]).strip()
                 if cell_content and cell_content != "nan" and is_valid_course(cell_content):
                     occupied_rooms.add(room)
     
-    # Get empty rooms
     empty_rooms = sorted(list(all_rooms - occupied_rooms))
     
     return empty_rooms
@@ -253,7 +226,6 @@ def find_empty_rooms(selected_day, selected_time, DAY_MAPPING):
 def main():
     st.set_page_config(page_title="Academic Schedule Lookup", layout="wide")
     
-    # Wrap the title and button in one flex container
     st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div class="main-title" style="margin: 0;">
@@ -273,65 +245,59 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    
+    # CSS styling (kept as is for maintaining UI design)
     st.markdown("""
     <style>
-    /* Overall page background & text */
     .stApp {
-        background-color: #FFFFFF; /* White background */
-        color: #000000; /* Black text */
+        background-color: #FFFFFF;
+        color: #000000;
     }
 
-    /* Main title */
     .main-title {
-    font-size: 32px;           /* Large, prominent text */
-    font-weight: 800;         /* Extra bold */
+    font-size: 32px;
+    font-weight: 800;
     margin-bottom: 20px;
-    color: #FFD700;           /* Bright yellow text */
-    text-transform: uppercase; /* All caps */
-    letter-spacing: 1px;      /* Spaced letters */
-    border-bottom: 2px solid #FFD700; /* Title line */
-    padding-bottom: 8px;      /* Space above the line */
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #FFD700;
+    padding-bottom: 8px;
     }
 
-    /* Cards */
     .card {
         border: 1px solid #DDDDDD;
         border-radius: 5px;
         padding: 15px;
         margin-bottom: 10px;
-        background-color: #FFFFFF; /* White card */
-        color: #000000; /* Black text */
+        background-color: #FFFFFF;
+        color: #000000;
         transition: 0.3s;
     }
     .card:hover {
         transform: translateY(-3px);
     }
 
-    /* Card Title */
     .card-title {
         font-weight: bold;
         margin-bottom: 10px;
         font-size: 24px;
-        color: black; /* Distinguish title text in card */
+        color: black;
     }
 
-    /* Lab, Regular, Special side lines */
     .lab-card {
-        border-left: 8px solid #FFD700; /* Yellow for Labs */
+        border-left: 8px solid #FFD700;
     }
     .regular-card {
-    border-left: 8px solid #FFA500; /* Orange for Regular */
+    border-left: 8px solid #FFA500;
     }
 
     .special-card {
         border-left: 8px solid #ec407a;
-        background-color: #fde6ec; /* Lighter pink for Special */
+        background-color: #fde6ec;
     }
 
-    /* Card details */
     .card-details {
-        color: #333333; /* Darker text for readability */
+        color: #333333;
         font-size: 14px;
     }
 
@@ -342,12 +308,10 @@ def main():
     padding: 2px 6px;
     border-radius: 3px;
     display: inline-block;
-    margin-left: 8px; /* Add some spacing between course name and indicator */
+    margin-left: 8px;
     vertical-align: middle;
     }
 
-
-    /* Subheader for sections */
     .subheader {
         font-size: 20px;
         font-weight: 500;
@@ -355,23 +319,20 @@ def main():
         color: #FFD700;
     }
 
-    /* Filter container background & text */
     .filter-container {
-        background-color: #f5f5f5; /* Light gray container */
+        background-color: #f5f5f5;
         color: #000000;
         padding: 15px;
         border-radius: 5px;
         margin-bottom: 20px;
     }
 
-    /* Professor info */
     .professor-info {
         font-style: italic;
         margin-top: 5px;
         color: #666666;
     }
 
-    /* Class type badge */
     .class-type {
         display: inline-block;
         margin-left: 8px;
@@ -382,9 +343,8 @@ def main():
         color: #333333;
     }
 
-    /* Current day info box */
     .current-day-info {
-        background-color: #fff9cc; /* Light yellow highlight */
+        background-color: #fff9cc;
         padding: 10px 15px;
         border-radius: 5px;
         margin-bottom: 15px;
@@ -392,13 +352,11 @@ def main():
         font-weight: 500;
     }
 
-    /* Empty room card */
     .empty-room-card {
         border-left: 4px solid #808000;
         background-color: #f9f9f9;
     }
 
-    /* Buttons */
     .stButton>button {
         background-color: #FFD700;
         color: #000000;
@@ -410,10 +368,9 @@ def main():
         transition: background-color 0.3s;
     }
     .stButton>button:hover {
-        background-color: #D4B200; /* Darker gold on hover */
+        background-color: #D4B200;
     }
 
-    /* Footer */
     footer {
         text-align: center;
         margin-top: 30px;
@@ -422,15 +379,13 @@ def main():
         color: #666666;
         font-size: 12px;
     }
-
-    
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
     # Get current day
     current_day = datetime.now().strftime("%A")
     
-    # If today is Saturday or Sunday, default to Monday
+    # If today is weekend, default to Monday
     if current_day in ["Saturday", "Sunday"]:
         default_day = "Monday"
         is_weekend = True
@@ -438,14 +393,13 @@ def main():
         default_day = current_day
         is_weekend = False
     
-    # Add tabs to navigate between Schedule and Empty Rooms features
+    # Add tabs for navigation
     tab1, tab2 = st.tabs(["Class Schedule", "Find Empty Rooms"])
     
     with tab1:
-    # Initialize session state for my_classes_list if not present.
+        # Initialize session state
         if "my_classes_list" not in st.session_state:
             st.session_state.my_classes_list = []
-        # Also initialize a flag to show success message.
         if "show_success" not in st.session_state:
             st.session_state.show_success = False
 
@@ -467,7 +421,6 @@ def main():
             all_classes = gather_all_classes(DAY_MAPPING)
             valid_defaults = [c for c in st.session_state.my_classes_list if c in all_classes]
             
-            # Place the multiselect and button in two columns
             cols = st.columns([3, 1])
             with cols[0]:
                 chosen = st.multiselect(
@@ -477,16 +430,15 @@ def main():
                     placeholder="Choose your classes..."
                 )
             with cols[1]:
-                st.write("")  # Spacer to align the button
+                st.write("")
                 st.write("")
                 if st.button("Save Classes"):
                     st.session_state.my_classes_list = chosen
                     st.session_state.show_success = True
 
-        # Place the success message outside the columns for full width display.
         if st.session_state.show_success:
             st.success("Classes saved successfully!")
-            st.session_state.show_success = False  # Reset the flag
+            st.session_state.show_success = False
 
         st.divider()
 
@@ -531,7 +483,7 @@ def main():
         if content_type in ["All", "Regular Classes"]:
             for row in regular_data[6:]:
                 for col_index in range(len(row)):
-                    if col_index == 0: continue  # Skip room column
+                    if col_index == 0: continue
                     cell_str = str(row[col_index]).strip()
                     if process_cell(cell_str, search_query, my_classes_on, selected_department_code):
                         room = row[0] if row else "N/A"
@@ -586,8 +538,6 @@ def main():
             handle_empty_results(my_classes_on, search_query, selected_day, selected_department_code)
 
     # Empty Rooms Tab
-    # Modified code section for the empty rooms tab with centered boxes
-    # Modified code section with fix for non-subscriptable classroom names
     with tab2:
         st.markdown('<div class="subheader">Find Empty Rooms</div>', unsafe_allow_html=True)
         
@@ -595,15 +545,12 @@ def main():
             st.markdown('<div class="filter-container">', unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3)
 
-            # Day selection
             with col1:
                 selected_day = st.selectbox("Select a Day", list(DAY_MAPPING.keys()))
             
-            # Search type selection
             with col2:
                 search_type = st.selectbox("Search Type", ['course', 'lab'])
             
-            # Time slot selection based on search type
             with col3:
                 if search_type == 'course':
                     selected_time_slot = st.selectbox("Select Time Slot", list(COURSE_TIME_SLOTS.keys()))
@@ -612,44 +559,39 @@ def main():
                     selected_time_slot = st.selectbox("Select Time Slot", list(LAB_TIME_SLOTS.keys()))
                     time_slots_dict = LAB_TIME_SLOTS
             
-            # Find button with full width
             if st.button("Find Free Classrooms", use_container_width=True):
-                # Download the sheet for the selected day
                 if selected_day == "Friday" and selected_time_slot == "1:00-2:20":
                     st.markdown(namaz_break_card(), unsafe_allow_html=True)
                 else:
                     df = download_sheet(DAY_MAPPING[selected_day])
                     
                     if df is not None:
-                        # Get columns for the selected time slot
                         time_slot_columns = time_slots_dict[selected_time_slot]
                         
-                        # Find free classes
                         free_classes = find_free_classes(df, time_slot_columns, search_type)
                         
-                        # Display results
                         if free_classes:
                             st.success(f"Free {search_type.capitalize()} Classrooms on {selected_day} during {selected_time_slot}")
                             st.markdown("""                            
                             <style>
                                 .building-section {
-                                    margin-bottom: 30px; /* Increased section margin */
+                                    margin-bottom: 30px;
                                 }
 
                                 .building-title {
-                                    font-size: 1.6rem; /* Increased from 1.2rem */
-                                    font-weight: 700; /* Bolder than before (was 500) */
-                                    margin-bottom: 20px; /* More space below title */
-                                    color: #FFD700;      /* Yellow to match main theme */
-                                    letter-spacing: 0.5px; /* Slightly spread letters for emphasis */
+                                    font-size: 1.6rem;
+                                    font-weight: 700;
+                                    margin-bottom: 20px;
+                                    color: #FFD700;
+                                    letter-spacing: 0.5px;
                                 }
 
                                 .classroom-box {
-                                    border: none;  /* Remove the full border */
-                                    border-left: 8px solid #FFA500;  /* Olive green border on the left only */
+                                    border: none;
+                                    border-left: 8px solid #FFA500;
                                     border-radius: 10px;
                                     padding: 15px;
-                                    background-color: #FFFFFF;   /* White background */
+                                    background-color: #FFFFFF;
                                     text-align: center;
                                     width: 180px;
                                     height: 140px;
@@ -659,26 +601,26 @@ def main():
                                     align-items: center;
                                     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                                     float: left;
-                                    margin-right: 25px; /* Keep horizontal spacing */
-                                    margin-bottom: 80px; /* Increased from 25px to 40px for more vertical space */
+                                    margin-right: 25px;
+                                    margin-bottom: 80px;
                                 }
 
                                 .classroom-row {
                                     display: flex;
                                     flex-wrap: wrap;
-                                    gap: 25px 25px; /* First value controls row gap, second controls column gap */
-                                    margin-bottom: 40px; /* Increased bottom margin of rows */
+                                    gap: 25px 25px;
+                                    margin-bottom: 40px;
                                 }
 
                                 .classroom-name {
-                                    color: black;         /* Olive green text */
+                                    color: black;
                                     font-size: 1.5rem;
                                     font-weight: bold;
                                     margin-bottom: 8px;
                                 }
 
                                 .classroom-detail {
-                                    color: #555555;         /* Dark gray for better contrast */
+                                    color: #555555;
                                     font-size: 0.9rem;
                                 }
 
@@ -687,39 +629,30 @@ def main():
                                     margin-bottom: 5px;
                                 }
                             </style>
-
                             """, unsafe_allow_html=True)
-                            # Sort the classrooms by building
+                            
+                            # Sort classrooms by building
                             building_classrooms = {}
 
                             for classroom_info in free_classes:
-                                # Get the classroom name
                                 classroom_name = str(classroom_info['classroom'])
-                                
-                                # Categorize the classroom
                                 building_prefix = categorize_classroom_by_block(classroom_name)
                                 
-                                # Skip None values (nan or empty classrooms)
                                 if building_prefix is None:
                                     continue
                                 
-                                # Add to appropriate category
                                 if building_prefix not in building_classrooms:
                                     building_classrooms[building_prefix] = []
                                 
                                 building_classrooms[building_prefix].append(classroom_info)
 
-                            # Sort buildings alphabetically (A, B, C, etc.)
                             sorted_buildings = sorted(building_classrooms.keys())
 
-                            # Use columns container instead of markdown for layout
                             for building in sorted_buildings:
                                 st.markdown(f'<div class="building-title">Block {building}</div>', unsafe_allow_html=True)
                                 
-                                # Calculate how many classrooms to display per row
-                                classrooms_per_row = 3  # Adjust as needed
+                                classrooms_per_row = 3
                                 
-                                # Sort classrooms within the same building
                                 def extract_number(classroom_info):
                                     classroom_str = str(classroom_info['classroom'])
                                     digits = ''.join([c for c in classroom_str if c.isdigit()])
@@ -727,12 +660,9 @@ def main():
                                 
                                 sorted_classrooms = sorted(building_classrooms[building], key=extract_number)
                                 
-                                # Create classroom boxes using Streamlit columns
                                 for i in range(0, len(sorted_classrooms), classrooms_per_row):
-                                    # Create a row of columns
                                     cols = st.columns(classrooms_per_row)
                                     
-                                    # Fill each column with a classroom box
                                     for col_idx, classroom_idx in enumerate(range(i, min(i + classrooms_per_row, len(sorted_classrooms)))):
                                         classroom_info = sorted_classrooms[classroom_idx]
                                         with cols[col_idx]:
@@ -744,11 +674,11 @@ def main():
                                             </div>
                                             """, unsafe_allow_html=True)
                                 
-                                # Add some spacing between buildings
                                 st.markdown("<br>", unsafe_allow_html=True)
                         else:
-                            
                             st.warning(f"No free {search_type} classrooms found on {selected_day} during {selected_time_slot}")    
+    
+    # Footer
     st.markdown("""
         <footer style="margin-top: 50px; padding: 15px; text-align: center; border-top: 1px solid #ddd; font-size: 0.9rem;">
             Academic Schedule Lookup © 2025 | 
@@ -759,6 +689,7 @@ def main():
 
 
 def process_cell(cell_str, search_query, my_classes_on, selected_department_code):
+    """Determine if cell meets the filter criteria"""
     if not cell_str or not is_valid_course(cell_str):
         return False
     

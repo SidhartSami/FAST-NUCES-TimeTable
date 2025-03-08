@@ -233,95 +233,51 @@ def main():
         </div>
         <a href="https://www.linkedin.com/in/sidhart-sami-9a2051296/" target="_blank" style="
             display: inline-block;
-            background-color: #FFD700;
-            color: #000;
             padding: 0.5rem 1rem;
             border-radius: 4px;
             text-decoration: none;
             font-weight: bold;
-        ">
+            color: #000;
+        " class="developer-link">
             Developer
         </a>
     </div>
+
+    <style>
+        /* Light mode (default) styling for the developer button */
+        @media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+            .developer-link {
+                background-color: #FFD700 !important; /* Yellow for light mode */
+            }
+        }
+        
+        /* Dark mode styling for the developer button */
+        @media (prefers-color-scheme: dark) {
+            .developer-link {
+                background-color: #00FF00 !important; /* Green for dark mode */
+            }
+        }
+    </style>
     """, unsafe_allow_html=True)
-    
     # CSS styling (kept as is for maintaining UI design)
     st.markdown("""
     <style>
-    .stApp {
-        background-color: #FFFFFF;
-        color: #000000;
-    }
-
-    .main-title {
-    font-size: 32px;
-    font-weight: 800;
-    margin-bottom: 20px;
-    color: #FFD700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 2px solid #FFD700;
-    padding-bottom: 8px;
-    }
-
-    .card {
-        border: 1px solid #DDDDDD;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 10px;
-        background-color: #FFFFFF;
-        color: #000000;
-        transition: 0.3s;
-    }
-    .card:hover {
-        transform: translateY(-3px);
-    }
-
-    .card-title {
-        font-weight: bold;
-        margin-bottom: 10px;
-        font-size: 24px;
-        color: black;
-    }
-
-    .lab-card {
-        border-left: 8px solid #FFD700;
-    }
-    .regular-card {
-    border-left: 8px solid #FFA500;
-    }
-
-    .special-card {
-        border-left: 8px solid #ec407a;
-        background-color: #fde6ec;
-    }
-
-    .card-details {
-        color: #333333;
-        font-size: 14px;
-    }
-
     .my-class-indicator {
-    background-color: #eaeaea;
-    color: #FFD700;
-    font-size: 12px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    display: inline-block;
-    margin-left: 8px;
-    vertical-align: middle;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        display: inline-block;
+        margin-left: 8px;
+        vertical-align: middle;
     }
-
+    
     .subheader {
         font-size: 20px;
         font-weight: 500;
         margin: 20px 0 10px 0;
-        color: #FFD700;
     }
 
     .filter-container {
-        background-color: #f5f5f5;
-        color: #000000;
         padding: 15px;
         border-radius: 5px;
         margin-bottom: 20px;
@@ -330,7 +286,6 @@ def main():
     .professor-info {
         font-style: italic;
         margin-top: 5px;
-        color: #666666;
     }
 
     .class-type {
@@ -339,27 +294,20 @@ def main():
         font-size: 12px;
         padding: 1px 5px;
         border-radius: 3px;
-        background-color: #eaeaea;
-        color: #333333;
     }
 
     .current-day-info {
-        background-color: #fff9cc;
         padding: 10px 15px;
         border-radius: 5px;
         margin-bottom: 15px;
-        color: #000000;
         font-weight: 500;
     }
 
     .empty-room-card {
-        border-left: 4px solid #808000;
-        background-color: #f9f9f9;
+        border-left: 8px solid #808000;
     }
 
     .stButton>button {
-        background-color: #FFD700;
-        color: #000000;
         border: none;
         border-radius: 4px;
         padding: 0.375rem 0.75rem;
@@ -367,21 +315,224 @@ def main():
         font-weight: 400;
         transition: background-color 0.3s;
     }
-    .stButton>button:hover {
-        background-color: #D4B200;
-    }
 
     footer {
         text-align: center;
         margin-top: 30px;
         padding-top: 10px;
-        border-top: 1px solid #DDDDDD;
-        color: #666666;
         font-size: 12px;
+    }
+
+    /* Light mode (default) styles */
+    @media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+        .stApp {
+            background-color: #FFFFFF;
+            color: #000000;
+        }
+
+        .main-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #FFD700;
+            padding-bottom: 8px;
+        }
+
+        .card {
+            border: 1px solid #DDDDDD;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #FFFFFF;
+            color: #000000;
+            transition: 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 24px;
+            color: black;
+        }
+
+        .lab-card {
+            border-left: 8px solid #FFD700;
+        }
+        
+        .regular-card {
+            border-left: 8px solid #FFA500;
+        }
+
+        .special-card {
+            border-left: 8px solid #ec407a;
+            background-color: #fde6ec;
+        }
+
+        .card-details {
+            color: #333333;
+            font-size: 14px;
+        }
+
+        .my-class-indicator {
+            background-color: #eaeaea;
+            color: #FFD700;
+        }
+        
+        .subheader {
+            color: #FFD700;
+        }
+
+        .filter-container {
+            background-color: #f5f5f5;
+            color: #000000;
+        }
+
+        .professor-info {
+            color: #666666;
+        }
+
+        .class-type {
+            background-color: #eaeaea;
+            color: #333333;
+        }
+
+        .current-day-info {
+            background-color: #fff9cc;
+            color: #000000;
+        }
+
+        .empty-room-card {
+            background-color: #f9f9f9;
+        }
+
+        .stButton>button {
+            background-color: #FFD700;
+            color: #000000;
+        }
+        
+        .stButton>button:hover {
+            background-color: #D4B200;
+        }
+
+        footer {
+            border-top: 1px solid #DDDDDD;
+            color: #666666;
+        }
+    }
+
+    /* Dark mode styles */
+    @media (prefers-color-scheme: dark) {
+        .stApp {
+            background-color: #000000;
+            color: #FFFFFF;
+        }
+
+        .main-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #00FF00;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #00FF00;
+            padding-bottom: 8px;
+        }
+
+        .card {
+            border: 1px solid #333333;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #1A1A1A;
+            color: #FFFFFF;
+            transition: 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 24px;
+            color: white;
+        }
+
+        .lab-card {
+            border-left: 8px solid #FFD700;
+        }
+        
+        .regular-card {
+            border-left: 8px solid #FFA500;
+        }
+
+        .special-card {
+            border-left: 8px solid #ec407a;
+            background-color: #331520;
+        }
+
+        .card-details {
+            color: #DDDDDD;
+            font-size: 14px;
+        }
+
+        .my-class-indicator {
+            background-color: #333333;
+            color: #FFD700;
+        }
+        
+        .subheader {
+            color: #00FF00;
+        }
+
+        .filter-container {
+            background-color: #222222;
+            color: #FFFFFF;
+        }
+
+        .professor-info {
+            color: #AAAAAA;
+        }
+
+        .class-type {
+            background-color: #333333;
+            color: #DDDDDD;
+        }
+
+        .current-day-info {
+            background-color: #333300;
+            color: #FFFFFF;
+        }
+
+        .empty-room-card {
+            background-color: #222222;
+        }
+
+        .stButton>button {
+            background-color: #00FF00;
+            color: #000000;
+        }
+        
+        .stButton>button:hover {
+            background-color: #00CC00;
+        }
+
+        footer {
+            border-top: 1px solid #444444;
+            color: #AAAAAA;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Get current day
     current_day = datetime.now().strftime("%A")
     
@@ -578,33 +729,91 @@ def main():
                                     margin-bottom: 30px;
                                 }
 
-                                .building-title {
-                                    font-size: 1.6rem;
-                                    font-weight: 700;
-                                    margin-bottom: 20px;
-                                    color: #FFD700;
-                                    letter-spacing: 0.5px;
+                                /* Light mode (default) styles */
+                                @media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+                                    .building-title {
+                                        font-size: 1.6rem;
+                                        font-weight: 700;
+                                        margin-bottom: 20px;
+                                        color: #FFD700;
+                                        letter-spacing: 0.5px;
+                                    }
+
+                                    .classroom-box {
+                                        border: none;
+                                        border-left: 8px solid #FFA500;
+                                        border-radius: 10px;
+                                        padding: 15px;
+                                        background-color: #FFFFFF;
+                                        text-align: center;
+                                        width: 180px;
+                                        height: 140px;
+                                        display: flex;
+                                        flex-direction: column;
+                                        justify-content: center;
+                                        align-items: center;
+                                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                                        float: left;
+                                        margin-right: 25px;
+                                        margin-bottom: 80px;
+                                    }
+
+                                    .classroom-name {
+                                        color: #000000;
+                                        font-size: 1.5rem;
+                                        font-weight: bold;
+                                        margin-bottom: 8px;
+                                    }
+
+                                    .classroom-detail {
+                                        color: #555555;
+                                        font-size: 0.9rem;
+                                    }
                                 }
 
-                                .classroom-box {
-                                    border: none;
-                                    border-left: 8px solid #FFA500;
-                                    border-radius: 10px;
-                                    padding: 15px;
-                                    background-color: #FFFFFF;
-                                    text-align: center;
-                                    width: 180px;
-                                    height: 140px;
-                                    display: flex;
-                                    flex-direction: column;
-                                    justify-content: center;
-                                    align-items: center;
-                                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                                    float: left;
-                                    margin-right: 25px;
-                                    margin-bottom: 80px;
+                                /* Dark mode styles */
+                                @media (prefers-color-scheme: dark) {
+                                    .building-title {
+                                        font-size: 1.6rem;
+                                        font-weight: 700;
+                                        margin-bottom: 20px;
+                                        color: #00FF00;
+                                        letter-spacing: 0.5px;
+                                    }
+
+                                    .classroom-box {
+                                        border: none;
+                                        border-left: 8px solid #FFA500;
+                                        border-radius: 10px;
+                                        padding: 15px;
+                                        background-color: #1A1A1A;
+                                        text-align: center;
+                                        width: 180px;
+                                        height: 140px;
+                                        display: flex;
+                                        flex-direction: column;
+                                        justify-content: center;
+                                        align-items: center;
+                                        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                                        float: left;
+                                        margin-right: 25px;
+                                        margin-bottom: 80px;
+                                    }
+
+                                    .classroom-name {
+                                        color: #FFFFFF;
+                                        font-size: 1.5rem;
+                                        font-weight: bold;
+                                        margin-bottom: 8px;
+                                    }
+
+                                    .classroom-detail {
+                                        color: #AAAAAA;
+                                        font-size: 0.9rem;
+                                    }
                                 }
 
+                                /* Shared styles for both modes */
                                 .classroom-row {
                                     display: flex;
                                     flex-wrap: wrap;
@@ -612,26 +821,12 @@ def main():
                                     margin-bottom: 40px;
                                 }
 
-                                .classroom-name {
-                                    color: black;
-                                    font-size: 1.5rem;
-                                    font-weight: bold;
-                                    margin-bottom: 8px;
-                                }
-
-                                .classroom-detail {
-                                    color: #555555;
-                                    font-size: 0.9rem;
-                                }
-
                                 .classroom-emoji {
                                     font-size: 1.8rem;
                                     margin-bottom: 5px;
                                 }
                             </style>
-                            """, unsafe_allow_html=True)
-                            
-                            # Sort classrooms by building
+                            """, unsafe_allow_html=True)                            
                             building_classrooms = {}
 
                             for classroom_info in free_classes:
